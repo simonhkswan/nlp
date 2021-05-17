@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-TMP_DIR = '/tmp/nlp/'
+TMP_DIR = '/Users/simonhkswan/nlp/tmp/'
 
 
 def maybe_download(url):

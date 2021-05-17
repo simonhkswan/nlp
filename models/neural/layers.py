@@ -23,9 +23,6 @@ class BaseLayer(ABC):
         self.layer_name = layer_name
 
     @abstractmethod
-    def
-
-    @abstractmethod
     def to_json(self):
         """Converts the layer to a json format."""
         layer = {"layer_name": self.layer_name}

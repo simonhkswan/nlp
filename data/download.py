@@ -1,10 +1,11 @@
-import re
-import bz2
 import gzip
-import xml.etree.ElementTree as EleTree
+import bz2
+import re
+import json
+from collections import Counter
 from urllib.request import urlopen
 from utils import maybe_download, TMP_DIR
-from data.WikiExtractor import Extractor
+from .wikiextractor.WikiExtractor import Extractor
 import logging
 
 
@@ -27,6 +28,7 @@ def wiki_page_counts(min_count=50):
         files = [url+m[1] for m in re.finditer(
                 r'<a.*(pageviews-\d+-\d+.gz)', f.read().decode('utf-8')
         )]
+    page_view_file = files[-1]
 
     en_counts = {}
     logger.info('Downloading wikipedia page counts.')
@@ -50,19 +52,72 @@ def wiki_page_counts(min_count=50):
 def wiki_xml_dump():
     url = "https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-" \
           "articles-multistream.xml.bz2"
-    popular = [v[0].decode('utf-8') for v in wiki_page_counts(50)]
-    count = 0
-    for n, (event, elem) in enumerate(EleTree.iterparse(bz2.open(maybe_download(url)))):
-        if elem.tag[43:] == 'page':
-            page = {
-                child.tag[43:]: child.text if child.tag[43:] != 'revision'
-                else {gc.tag[43:]: gc.text for gc in child.getchildren()}
-                for child in elem.getchildren()
-            }
-            if 'redirect' in page:
+    with bz2.open(maybe_download(url)) as f:
+        texts = []
+        popular = [v[0].decode('utf-8').replace('_', ' ') for v in wiki_page_counts(50)]
+        with open(TMP_DIR+'texts.txt', 'w') as outfile:
+            for n, page in enumerate(pages(f)):
+                if n % 10000 == 0:
+                    logger.debug('%d pages processed (found: %d).' % (n, len(texts)))
+                    # logger.trace('Titles to find: %s' % popular)
+                if page['title'] not in popular:
+                    continue
+                popular.remove(page['title'])
+                Extractor(page['id'], 1, page['title'], page['text']).extract(outfile)
+                texts.append(1)
+            logger.info("%d pages with content extracted from %d." %
+                        (len(texts), n))
+
+
+def pages(f):
+    page = {'text': ''}
+    pos = 'o'
+    for l in f:
+        if pos == 'o':
+            if b'<page>' in l:
+                pos = 'i'
+            else:
                 continue
-            if page['title'] in popular:
-                ext = Extractor(page['id'], page['revision']['id'], page['title'], page['revision']['text'])
-                ext.extract(open(TMP_DIR+'wiki/'+re.sub(r'[/ ]', '_', page['title']), 'w'))
-                count += 1
-    logger.info("%d pages with content extracted from %d." % (count, len(popular)))
+        elif 'i' in pos:
+            if 'ii' in pos:
+                if b'</text>' in l:
+                    pos = 'i'
+                    page['text'] += l.decode('utf-8')
+                else:
+                    page['text'] += l.decode('utf-8')
+            else:
+                if b'<title>' in l:
+                    page['title'] = re.search('<title>(.*)</title>', l.decode('utf-8'))[1]
+                if b'<ns>' in l:
+                    page['ns'] = re.search('<ns>(.*)</ns>', l.decode('utf-8'))[1]
+                    if page['ns'] != '0':
+                        pos = 'o'
+                        page = {'text': ''}
+                        continue
+                if b'<id>' in l:
+                    page['id'] = re.search('<id>(.*)</id>', l.decode('utf-8'))[1]
+                elif b'</page>' in l:
+                    pos = 'o'
+                    yield(page)
+                    page = {'text': ''}
+                elif b'<text' in l:
+                    page['text'] += l.decode('utf-8')
+                    pos = 'ii'
+
+
+def text_from_page(page):
+    page['text'] = re.sub(r'\{\{[^{]+?\}\}', r'', page['text'])
+    page['text'] = re.sub(r"\[\[File:.*\]\]", r'', page['text'])
+    page['text'] = re.sub(r"\[\[[^\[]+\|(?P<word>[^\[]+)\]\]", r'\g<word>', page['text'])
+    page['text'] = re.sub(r"\[\[(?P<word>[^\[]+)\]\]", r'\g<word>', page['text'])
+    page['text'] = re.sub(r"&quot;|\'{2,3}", r'"', page['text'])
+    page['text'] = re.sub(r" ?={2,4} ?", r'', page['text'])
+    page['text'] = re.sub(r"&lt;!--.*--&gt;", r'', page['text'])
+    page['text'] = re.sub(r'\n+', r'\n', page['text'])
+
+    if 'See also\n' in page['text']:
+        return page['text'][:page['text'].index('See also\n')]
+    if 'References\n' in page['text']:
+        return page['text'][:page['text'].index('References\n')]
+    else:
+        return None
