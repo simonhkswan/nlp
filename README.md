@@ -21,7 +21,8 @@ Currently there are three modules (plus a few more things in `nlp.utils.py`):
 - feature extractors - SkipGram (feature extractors take data from the data
     structures and prepare it for the models).
 
----
+
+## Some Snippets
 
 ### Word Clouds
 The snippet below provides an example of how a word cloud can be created based
@@ -39,6 +40,9 @@ wordcloud({
     for w, f in wiki_page_counts(min_count=500, num_hours=12)[4:]
 })
 ```
+
+Example output:
+
 ![wordcloud](https://user-images.githubusercontent.com/13236749/118616146-54888d00-b7b9-11eb-9444-f36dc6d01a5f.png)
 
 ### Downloading and extracting Wikipedia pages
@@ -63,5 +67,40 @@ wiki_xml_dump(
 ```
 
 ### Word2Vec
+This snippet shows how a word2vec model can be trained.
+
+```python
+# example_w2v.py
+import os
+import numpy as np
+from utils import setup_logging, TMP_DIR
+from data.structures import get_documents
+from models.neural.word2vec import Word2Vec, W2V_DIR
+from models.feature_extractors import SkipGramExtractor
+
+setup_logging()
+MODEL_DIR = W2V_DIR + '1/'
+if not os.path.exists(MODEL_DIR):
+    os.makedirs(MODEL_DIR)
+
+# Create w2v training data
+sge = SkipGramExtractor(window=2)
+x, y = sge.docs_to_training_data(docs=get_documents(), size=50000,
+                                 tsv_path=MODEL_DIR + 'vocab.tsv')
+np.save(TMP_DIR + 'x.npy', x)
+np.save(TMP_DIR + 'y.npy', y)
+
+# Create and train a w2v model
+x = np.expand_dims(np.load(TMP_DIR + 'x.npy'), axis=-1)
+y = np.load(TMP_DIR + 'y.npy')
+z = np.concatenate([x, y], axis=-1)
+np.random.shuffle(z)
+x, y = z[..., 0], z[..., 1:]
+del z
+w2v = Word2Vec(dim=128, vocab=50000, path=MODEL_DIR, feature_extractor=sge)
+w2v.construct()
+w2v.train(x=x, y=y, mbs=5000, steps=1000000)
+w2v.save()
+```
 <img width="1152" alt="Screenshot 2021-05-18 at 09 12 22" src="https://user-images.githubusercontent.com/13236749/118616026-3b7fdc00-b7b9-11eb-8ace-7d8ed432c2ac.png">
 
