@@ -1,4 +1,5 @@
 """Create w2v training data, build and train a w2v model. """
+import os
 import numpy as np
 from utils import setup_logging, TMP_DIR
 from data.structures import get_documents
@@ -6,11 +7,14 @@ from models.neural.word2vec import Word2Vec, W2V_DIR
 from models.feature_extractors import SkipGramExtractor
 
 setup_logging()
+MODEL_DIR = W2V_DIR + '1/'
+if not os.path.exists(MODEL_DIR):
+    os.makedirs(MODEL_DIR)
 
 # Create w2v training data
 sge = SkipGramExtractor(window=2)
 x, y = sge.docs_to_training_data(docs=get_documents(), size=50000,
-                                 tsv_path=W2V_DIR + '1/vocab.tsv')
+                                 tsv_path=MODEL_DIR + 'vocab.tsv')
 np.save(TMP_DIR + 'x.npy', x)
 np.save(TMP_DIR + 'y.npy', y)
 
@@ -21,7 +25,7 @@ z = np.concatenate([x, y], axis=-1)
 np.random.shuffle(z)
 x, y = z[..., 0], z[..., 1:]
 del z
-w2v = Word2Vec(dim=128, vocab=50000, path=W2V_DIR + '1', feature_extractor=sge)
+w2v = Word2Vec(dim=128, vocab=50000, path=MODEL_DIR, feature_extractor=sge)
 w2v.construct()
 w2v.train(x=x, y=y, mbs=5000, steps=1000000)
 w2v.save()

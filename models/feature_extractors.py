@@ -16,6 +16,7 @@ Currently implemented:
 import logging
 from typing import Dict
 import numpy as np
+import random
 from abc import ABC, abstractmethod
 from data.structures import get_vocab
 
@@ -75,6 +76,7 @@ class SkipGramExtractor(FeatureExtractor):
         self.win = window
         self.word2int = None
         self.counts = None
+        self.probs = None
         super(SkipGramExtractor, self).__init__(self.class_name, self.in_types)
 
     def create_word2int(self, size, tsv_path=None):
@@ -82,6 +84,11 @@ class SkipGramExtractor(FeatureExtractor):
         self.word2int = {w[0]: n + 1 for n, w in enumerate(self.counts)}
         if tsv_path is not None:
             self.save_vocab_tsv(tsv_path)
+        total = sum([w[1] for w in self.counts])
+        self.probs = {
+            self.word2int[w[0]]: (1.+np.sqrt(1000.*w[1]/total))*total/(1000.*w[1])
+            for w in self.counts
+        }
 
     def save_vocab_tsv(self, path):
         logger.info("Saving vocab TSV file to: %s." % path)
@@ -112,6 +119,8 @@ class SkipGramExtractor(FeatureExtractor):
                 for s in para.sentences():
                     text = [self.word2int.get(w, 0) for w in s.words()]
                     for i in range(len(text) - 4):
+                        if random.random() > self.probs.get(text[i+self.win], self.probs[1]):
+                            continue
                         x.append(text[i + self.win])
                         y.append(text[i:i + self.win] +
                                  text[i + 1 + self.win:i + 1 + 2 * self.win])

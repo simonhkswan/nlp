@@ -1,4 +1,4 @@
-[![Flake8](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml/badge.svg)](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml)
+[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-3710/) [![Flake8](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml/badge.svg)](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml)
 
 # NLP
 ---

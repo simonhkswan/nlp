@@ -16,7 +16,7 @@ class Word2Vec(Model, FeatureExtractor):
     class_name = "Word2Vec"
 
     def __init__(
-            self, dim=128, vocab_len=50000, path=W2V_DIR + '1',
+            self, dim=128, vocab_len=50000, path=W2V_DIR + '1/',
             feature_extractor=None, **kwargs
     ):
         self.dim = dim
@@ -121,7 +121,7 @@ class Word2Vec(Model, FeatureExtractor):
                         }
                     )
                     writer.add_summary(summary, s)
-                    saver.save(sess=self.sess, save_path=self.path+'/w2v.ckpt',
+                    saver.save(sess=self.sess, save_path=self.path+'w2v.ckpt',
                                global_step=s)
                 else:
                     _ = self.sess.run(
@@ -138,8 +138,8 @@ class Word2Vec(Model, FeatureExtractor):
     def save(self):
         logger.info("Saving Word2Vec to %s." % self.path)
         wv = self.sess.run(self.emb_weights)
-        np.save(self.path + '/wordvectors.npy', wv)
-        self.fe.save_vocab_tsv(path=self.path+'/vocab.tsv')
+        np.save(self.path + 'wordvectors.npy', wv)
+        self.fe.save_vocab_tsv(path=self.path+'vocab.tsv')
 
     def to_json(self):
         pass
@@ -152,8 +152,8 @@ class Word2Vec(Model, FeatureExtractor):
     def load(path):
         logger.info("Loading Word2Vec from %s." % path)
         counts = [line[:-1].split('\t')
-                  for line in open(path+'/vocab.tsv', 'r').readlines()[1:]]
-        word_vectors = np.load(path+'/wordvectors.npy')[0]
+                  for line in open(path+'vocab.tsv', 'r').readlines()[1:]]
+        word_vectors = np.load(path+'wordvectors.npy')[0]
         logger.debug('Word vectors shape: %s, Counts length: %d' %
                      (word_vectors.shape, len(counts)))
         w2v = Word2Vec(
