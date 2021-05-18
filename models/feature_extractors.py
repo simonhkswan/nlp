@@ -14,6 +14,7 @@ Currently implemented:
 
 """
 import logging
+from typing import Dict
 import numpy as np
 from abc import ABC, abstractmethod
 from data.structures import get_vocab
@@ -148,8 +149,7 @@ class WordSetExtractor(FeatureExtractor):
         return WordSetExtractor()
 
 
-#: dict[str, obj:`FeatureExtractor`]: Dict mapping string to Feature Extractors.
-str2feature_extractor = {
+str2feature_extractor: Dict[str, FeatureExtractor] = {
     feature_extractor.class_name: feature_extractor
     for feature_extractor in FeatureExtractor.__subclasses__()
 }

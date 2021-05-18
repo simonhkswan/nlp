@@ -49,7 +49,7 @@ class Word2Vec(Model, FeatureExtractor):
                         for n, w in enumerate(self.vocab)}
 
     def construct(self):
-        logger.info('Constructing Word2Vec model with dim: %d, vocab_length: %d'
+        logger.info('Constructing Word2Vec model w/ dim: %d, vocab_length: %d'
                     % (self.dim, self.vocab_length))
         self.graph = tf.Graph()
 
@@ -151,8 +151,8 @@ class Word2Vec(Model, FeatureExtractor):
     @staticmethod
     def load(path):
         logger.info("Loading Word2Vec from %s." % path)
-        counts = [l[:-1].split('\t')
-                  for l in open(path+'/vocab.tsv', 'r').readlines()[1:]]
+        counts = [line[:-1].split('\t')
+                  for line in open(path+'/vocab.tsv', 'r').readlines()[1:]]
         word_vectors = np.load(path+'/wordvectors.npy')[0]
         logger.debug('Word vectors shape: %s, Counts length: %d' %
                      (word_vectors.shape, len(counts)))
@@ -168,7 +168,7 @@ class Word2Vec(Model, FeatureExtractor):
             return self.w2v.get(item, self.w2v['<UNK>'])
         elif type(item) is list:
             return [self.w2v.get(w, self.w2v['<UNK>']) for w in item]
-        
+
     def predict(self, x):
         return self[x]
 

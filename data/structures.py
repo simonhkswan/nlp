@@ -139,9 +139,9 @@ def get_documents():
     doc_count = 0
     with open(TMP_DIR+'texts.txt', 'r') as f:
         txt = ''
-        for l in f:
-            txt += l
-            if '</doc>' in l:
+        for line in f:
+            txt += line
+            if '</doc>' in line:
                 yield Document(txt)
                 doc_count += 1
                 if doc_count % 10000 == 0:

@@ -73,8 +73,8 @@ class LSTMParaClassifier(Model):
         pass
 
     def train_model(self, data, epochs, log_dir):
-        logger.info("Starting training for LSTMParaClassifier with %d examples,"
-                    " %d epochs. Saving logs to %s", len(data), epochs, log_dir)
+        logger.info("Starting training for LSTM with %d examples, %d epochs. "
+                    "Saving logs to %s", len(data), epochs, log_dir)
         config = tf.ConfigProto(intra_op_parallelism_threads=4,
                                 inter_op_parallelism_threads=4)
         self.sess = tf.Session(graph=self.graph, config=config)

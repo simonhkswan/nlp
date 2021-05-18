@@ -86,46 +86,46 @@ def wiki_xml_dump(txt_file_path: str, min_count=50, num_hours=12):
 def pages(f):
     page = {'text': ''}
     pos = 'o'
-    for l in f:
+    for line in f:
         if pos == 'o':
-            if b'<page>' in l:
+            if b'<page>' in line:
                 pos = 'i'
             else:
                 continue
 
         elif 'i' in pos:
             if 'ii' in pos:
-                if b'</text>' in l:
+                if b'</text>' in line:
                     pos = 'i'
-                    page['text'] += l.decode('utf-8')
+                    page['text'] += line.decode('utf-8')
                 else:
-                    page['text'] += l.decode('utf-8')
+                    page['text'] += line.decode('utf-8')
 
             else:
-                if b'<title>' in l:
+                if b'<title>' in line:
                     page['title'] = re.search(
-                        '<title>(.*)</title>', l.decode('utf-8')
+                        '<title>(.*)</title>', line.decode('utf-8')
                     )[1]
 
-                if b'<ns>' in l:
+                if b'<ns>' in line:
                     page['ns'] = re.search(
-                        '<ns>(.*)</ns>', l.decode('utf-8')
+                        '<ns>(.*)</ns>', line.decode('utf-8')
                     )[1]
                     if page['ns'] != '0':
                         pos = 'o'
                         page = {'text': ''}
                         continue
 
-                if b'<id>' in l:
+                if b'<id>' in line:
                     page['id'] = re.search(
-                        '<id>(.*)</id>', l.decode('utf-8')
+                        '<id>(.*)</id>', line.decode('utf-8')
                     )[1]
-                elif b'</page>' in l:
+                elif b'</page>' in line:
                     pos = 'o'
                     yield(page)
                     page = {'text': ''}
-                elif b'<text' in l:
-                    page['text'] += l.decode('utf-8')
+                elif b'<text' in line:
+                    page['text'] += line.decode('utf-8')
                     pos = 'ii'
 
 

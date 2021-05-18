@@ -44,8 +44,8 @@ class GraphCon(object):
         result = tx.run(
                 "CREATE (d:Document) "
                 "SET d.doc_id = $did, d.title = $title "
-                "RETURN d.title + ', from node ' + id(d) ", 
-                did=did, 
+                "RETURN d.title + ', from node ' + id(d) ",
+                did=did,
                 title=title
         )
         return result.single()[0]
@@ -76,7 +76,9 @@ class GraphCon(object):
 
     def get_document_from_title(self, title):
         with self._driver.session() as session:
-            docs = session.write_transaction(self._return_doc_from_title, title)
+            docs = session.write_transaction(
+                self._return_doc_from_title, title
+            )
             doc = next(docs)
             return Document(
                 paragraphs=doc.get('paragraphs'),
@@ -156,7 +158,9 @@ class GraphCon(object):
 
     def set_node_bowv(self, node_id, bowv):
         with self._driver.session() as session:
-            node = session.write_transaction(self._set_node_bowv, node_id, bowv)
+            node = session.write_transaction(
+                self._set_node_bowv, node_id, bowv
+            )
             logger.log(16, 'neo4j: %s' % node)
 
     @staticmethod
