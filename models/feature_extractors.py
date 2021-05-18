@@ -32,6 +32,7 @@ def fe_from_dict(json_dict):
     Returns:
         FeatureExtractor: The feature extractor described by the json content.
     """
+
     return str2feature_extractor[json_dict['class_name']].from_json(json_dict)
 
 
@@ -55,6 +56,7 @@ class FeatureExtractor(ABC):
         fe = {
             "class_name": self.class_name
         }
+
         return fe
 
     @staticmethod
@@ -82,6 +84,7 @@ class SkipGramExtractor(FeatureExtractor):
     def create_word2int(self, size, tsv_path=None):
         self.counts = get_vocab(size=size - 1)
         self.word2int = {w[0]: n + 1 for n, w in enumerate(self.counts)}
+
         if tsv_path is not None:
             self.save_vocab_tsv(tsv_path)
         total = sum([w[1] for w in self.counts])
@@ -89,6 +92,7 @@ class SkipGramExtractor(FeatureExtractor):
             self.word2int[w[0]]: (
                 1. + np.sqrt(1000. * w[1] / total)
             ) * total / (1000. * w[1])
+
             for w in self.counts
         }
 
@@ -97,12 +101,14 @@ class SkipGramExtractor(FeatureExtractor):
         with open(path, 'w') as tsv_file:
             tsv_file.write('Word\tCount\n')
             tsv_file.write('<UNK>\t0\n')
+
             for w, c in self.counts:
                 tsv_file.write('%s\t%d\n' % (w, c))
 
     def extract(self, node):
         x, y = [], []
         text = [self.word2int.get(w, 0) for w in node.words()]
+
         for i in range(len(text) - 4):
             x.append(text[i + self.win])
             y.append(text[i:i + self.win] +
@@ -110,29 +116,37 @@ class SkipGramExtractor(FeatureExtractor):
 
         x = np.array(x, dtype=np.int32)
         y = np.array(y, dtype=np.int32)
+
         return x, y
 
     def docs_to_training_data(self, docs, size, tsv_path=None):
         x = []
         y = []
         self.create_word2int(size=size, tsv_path=tsv_path)
+
         for doc in docs:
             for para in doc.paragraphs():
                 for s in para.sentences():
                     text = [self.word2int.get(w, 0) for w in s.words()]
+
                     for i in range(len(text) - 4):
-                        if random.random() > self.probs.get(text[i+self.win], self.probs[1]):
+                        th = self.probs.get(text[i+self.win], self.probs[1])
+
+                        if random.random() > th:
                             continue
+
                         x.append(text[i + self.win])
                         y.append(text[i:i + self.win] +
                                  text[i + 1 + self.win:i + 1 + 2 * self.win])
         x = np.array(x, dtype=np.int32)
         y = np.array(y, dtype=np.int32)
+
         return x, y
 
     def to_json(self):
         fe = super().to_json()
         fe["win"] = str(self.win)
+
         return fe
 
     @staticmethod
@@ -153,6 +167,7 @@ class WordSetExtractor(FeatureExtractor):
 
     def to_json(self):
         fe = super().to_json()
+
         return fe
 
     @staticmethod
