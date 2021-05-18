@@ -7,6 +7,10 @@ from models.base import Model
 
 logger = logging.getLogger(__name__)
 
+LSTM_DIR = os.getcwd() + "/generated/lstm/"
+if not os.path.exists(LSTM_DIR):
+    os.makedirs(LSTM_DIR)
+
 
 class LSTMParaClassifier(Model):
 

@@ -1,9 +1,14 @@
+import os
 import math
 import logging
 from collections import Counter
 from models.feature_extractors import WordSetExtractor
 
 logger = logging.getLogger(__name__)
+
+TFIDF_DIR = os.getcwd() + "/generated/tfidf/"
+if not os.path.exists(TFIDF_DIR):
+    os.makedirs(TFIDF_DIR)
 
 
 class TfIdfVectorizer(object):

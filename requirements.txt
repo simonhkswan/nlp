@@ -1,7 +1,5 @@
 coloredlogs
-matplotlib
 neo4j==1.7.4
 numpy
-sklearn
 tensorflow==1.14.0
 wordcloud==1.5.0

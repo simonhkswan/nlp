@@ -7,7 +7,7 @@ from models.feature_extractors import FeatureExtractor, SkipGramExtractor
 
 logger = logging.getLogger(__name__)
 
-W2V_DIR = "/home/simonhkswan/code/nlp/generated/word2vec/1"
+W2V_DIR = os.getcwd() + "/generated/word2vec/"
 if not os.path.exists(W2V_DIR):
     os.makedirs(W2V_DIR)
 
@@ -15,9 +15,13 @@ if not os.path.exists(W2V_DIR):
 class Word2Vec(Model, FeatureExtractor):
     class_name = "Word2Vec"
 
-    def __init__(self, dim=128, vocab_len=50000, **kwargs):
+    def __init__(
+            self, dim=128, vocab_len=50000, path=W2V_DIR + '1',
+            feature_extractor=None, **kwargs
+    ):
         self.dim = dim
         self.vocab_length = vocab_len
+        self.path = path
         self.graph = None
         self.sess = None
         self.emb_weights, self.loss = None, None
@@ -28,9 +32,13 @@ class Word2Vec(Model, FeatureExtractor):
         self.make_w2v()
         logger.info("Word2Vec initialised. dim: %d, vocab_len: %d" %
                     (self.dim, self.vocab_length))
+
+        if feature_extractor is None:
+            feature_extractor = SkipGramExtractor(window=kwargs.get("window"))
+
         super(Word2Vec, self).__init__(
             in_type="Corpora", out_type=None,
-            feature_extractor=SkipGramExtractor(window=kwargs.get("window")),
+            feature_extractor=feature_extractor,
             in_types=["Paragraph"], class_name="Word2Vec"
         )
 
@@ -100,7 +108,7 @@ class Word2Vec(Model, FeatureExtractor):
             self.sess = tf.Session(graph=self.graph)
             self.sess.run(tf.global_variables_initializer())
             merge = tf.summary.merge_all()
-            writer = tf.summary.FileWriter(logdir=W2V_DIR,
+            writer = tf.summary.FileWriter(logdir=self.path,
                                            graph=self.graph, session=self.sess)
             saver = tf.train.Saver(max_to_keep=1)
             for s in range(steps):
@@ -113,7 +121,7 @@ class Word2Vec(Model, FeatureExtractor):
                         }
                     )
                     writer.add_summary(summary, s)
-                    saver.save(sess=self.sess, save_path=W2V_DIR+'/w2v.ckpt',
+                    saver.save(sess=self.sess, save_path=self.path+'/w2v.ckpt',
                                global_step=s)
                 else:
                     _ = self.sess.run(
@@ -125,13 +133,13 @@ class Word2Vec(Model, FeatureExtractor):
                     )
 
                 if (s+1) % 100000 == 0:
-                    self.save(W2V_DIR)
+                    self.save()
 
-    def save(self, path):
-        logger.info("Saving Word2Vec to %s." % path)
+    def save(self):
+        logger.info("Saving Word2Vec to %s." % self.path)
         wv = self.sess.run(self.emb_weights)
-        np.save(path + '/wordvectors.npy', wv)
-        self.fe.save_vocab_tsv(path=path+'/vocab.tsv')
+        np.save(self.path + '/wordvectors.npy', wv)
+        self.fe.save_vocab_tsv(path=self.path+'/vocab.tsv')
 
     def to_json(self):
         pass
@@ -150,7 +158,8 @@ class Word2Vec(Model, FeatureExtractor):
                      (word_vectors.shape, len(counts)))
         w2v = Word2Vec(
             word_vectors=word_vectors,
-            vocab=[c[0] for c in counts]
+            vocab=[c[0] for c in counts],
+            path=path
         )
         return w2v
 

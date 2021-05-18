@@ -61,7 +61,7 @@ class Document(Structure):
             self.paras = paragraphs
             self.title = title
             self._text = None
-            self.bowv = kwargs.get("bo  wv")
+            self.bowv = kwargs.get("bowv")
         super(Document, self).__init__(self.class_name)
 
     def paragraphs(self):
