@@ -1,10 +1,27 @@
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-3710/) [![Flake8](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml/badge.svg)](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml)
 
 # NLP
----
 This library contains tools to create natural language processing models and 
 other funky linguistic things. Some of the features require neo4j to be
 installed and running.
+
+Currently there are three modules (plus a few more things in `nlp.utils.py`):
+
+`nlp.data`
+- downloading and extracting text data
+- data structures: corpora -> docs -> paragraphs -> spans
+
+`nlp.database`
+- storing the data structures and models in `neo4j`
+- accessing the data structures + any annotations/predictions from the models
+
+`nlp.models`
+- neural models - word2vec, LSTM classifiers
+- statistical models - tfidf
+- feature extractors - SkipGram (feature extractors take data from the data
+    structures and prepare it for the models).
+
+---
 
 ### Word Clouds
 The snippet below provides an example of how a word cloud can be created based
