@@ -86,7 +86,9 @@ class SkipGramExtractor(FeatureExtractor):
             self.save_vocab_tsv(tsv_path)
         total = sum([w[1] for w in self.counts])
         self.probs = {
-            self.word2int[w[0]]: (1.+np.sqrt(1000.*w[1]/total))*total/(1000.*w[1])
+            self.word2int[w[0]]: (
+                1. + np.sqrt(1000. * w[1] / total)
+            ) * total / (1000. * w[1])
             for w in self.counts
         }
 
