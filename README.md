@@ -39,6 +39,7 @@ wordcloud({
     for w, f in wiki_page_counts(min_count=500, num_hours=12)[4:]
 })
 ```
+![wordcloud](https://user-images.githubusercontent.com/13236749/118616146-54888d00-b7b9-11eb-9444-f36dc6d01a5f.png)
 
 ### Downloading and extracting Wikipedia pages
 We need lots of text for NLP. A good source is wikipedia, but a lot of the
@@ -60,3 +61,7 @@ wiki_xml_dump(
     num_hours=12
 )
 ```
+
+### Word2Vec
+<img width="1152" alt="Screenshot 2021-05-18 at 09 12 22" src="https://user-images.githubusercontent.com/13236749/118616026-3b7fdc00-b7b9-11eb-8ace-7d8ed432c2ac.png">
+
