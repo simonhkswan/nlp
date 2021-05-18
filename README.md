@@ -1,3 +1,5 @@
+[![Flake8](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml/badge.svg)](https://github.com/simonhkswan/nlp/actions/workflows/flake8-action.yml)
+
 # NLP
 ---
 This library contains tools to create natural language processing models and 
